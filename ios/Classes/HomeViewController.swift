@@ -6,10 +6,17 @@ class HomeViewController: UIViewController, ImageScannerControllerDelegate {
 
     var cameraController: ImageScannerController!
     var _result:FlutterResult?
-    
+
     var saveTo: String = ""
     var canUseGallery: Bool = true
-    
+
+    private func keyWindow() -> UIWindow? {
+        return UIApplication.shared.connectedScenes
+            .compactMap { scene in scene as? UIWindowScene }
+            .flatMap { windowScene in windowScene.windows }
+            .first { window in window.isKeyWindow }
+    }
+
     override func viewDidAppear(_ animated: Bool) {
         if self.isBeingPresented {
             cameraController = ImageScannerController()
@@ -39,7 +46,7 @@ class HomeViewController: UIViewController, ImageScannerControllerDelegate {
             }
             
             present(cameraController, animated: true) {
-                if let window = UIApplication.shared.keyWindow {
+                if let window = self.keyWindow() {
                     window.addSubview(self.selectPhotoButton)
                     self.setupConstraints()
                 }
@@ -72,7 +79,7 @@ class HomeViewController: UIViewController, ImageScannerControllerDelegate {
     }
     
     @objc func selectPhoto() {
-        if let window = UIApplication.shared.keyWindow {
+        if let window = keyWindow() {
             window.rootViewController?.dismiss(animated: true, completion: nil)
             self.hideButtons()
             
