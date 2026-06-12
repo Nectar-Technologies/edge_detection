@@ -193,11 +193,21 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
             }
 
             val inputData: ByteArray? = getBytes(contentResolver.openInputStream(imageUri)!!)
-            val mat = Mat(Size(imageWidth, imageHeight), CvType.CV_8U)
+            if (inputData == null || inputData.isEmpty()) {
+                setResult(ERROR_CODE, Intent())
+                finish()
+                return
+            }
+            val mat = Mat(1, inputData.size, CvType.CV_8U)
             mat.put(0, 0, inputData)
             val pic = Imgcodecs.imdecode(mat, Imgcodecs.IMREAD_UNCHANGED)
-            if (rotation > -1) Core.rotate(pic, pic, rotation)
             mat.release()
+            if (pic.empty()) {
+                setResult(ERROR_CODE, Intent())
+                finish()
+                return
+            }
+            if (rotation > -1) Core.rotate(pic, pic, rotation)
 
             mPresenter.detectEdge(pic)
         } catch (error: Exception) {
