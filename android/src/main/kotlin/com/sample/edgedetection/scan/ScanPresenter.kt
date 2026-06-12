@@ -273,27 +273,36 @@ class ScanPresenter constructor(
         }
     }
 
-    override fun onPictureTaken(p0: ByteArray?, p1: Camera?) {
+    override fun onPictureTaken(data: ByteArray?, camera: Camera?) {
         Log.i(TAG, "on picture taken")
-        Observable.just(p0)
+        Observable.just(data)
             .subscribeOn(proxySchedule)
-            .subscribe {
-                val pictureSize = p1?.parameters?.pictureSize
+            .subscribe({
+                if (data == null || data.isEmpty()) {
+                    busy = false
+                    return@subscribe
+                }
+                val pictureSize = camera?.parameters?.pictureSize
                 Log.i(TAG, "picture size: " + pictureSize.toString())
-                val mat = Mat(
-                    Size(
-                        pictureSize?.width?.toDouble() ?: 1920.toDouble(),
-                        pictureSize?.height?.toDouble() ?: 1080.toDouble()
-                    ), CvType.CV_8U
-                )
-                mat.put(0, 0, p0)
-                val pic = Imgcodecs.imdecode(mat, Imgcodecs.CV_LOAD_IMAGE_UNCHANGED)
-                Core.rotate(pic, pic, Core.ROTATE_90_CLOCKWISE)
+                val mat = Mat(1, data.size, CvType.CV_8U)
+                mat.put(0, 0, data)
+                val pic = Imgcodecs.imdecode(mat, Imgcodecs.IMREAD_UNCHANGED)
                 mat.release()
+                if (pic.empty()) {
+                    shutted = true
+                    busy = false
+                    mCamera?.startPreview()
+                    return@subscribe
+                }
+                Core.rotate(pic, pic, Core.ROTATE_90_CLOCKWISE)
                 detectEdge(pic)
                 shutted = true
                 busy = false
-            }
+            }, { _ ->
+                shutted = true
+                busy = false
+                mCamera?.startPreview()
+            })
     }
 
     override fun onPreviewFrame(p0: ByteArray?, p1: Camera?) {
