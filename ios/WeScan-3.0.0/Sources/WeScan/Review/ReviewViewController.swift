@@ -109,6 +109,7 @@ final class ReviewViewController: UIViewController {
         navigationController?.toolbar.barStyle = .blackTranslucent
 
         let fixedSpace = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
+        fixedSpace.width = 16.0
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         toolbarItems = [fixedSpace, enhanceButton, flexibleSpace, rotateButton, fixedSpace]
     }
